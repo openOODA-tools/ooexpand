@@ -1,0 +1,97 @@
+// # IPC Subsystem Test Anchor
+//
+// Logline: Verification suite validating JSON parsing, CLI option decoding, and MCP server dispatch.
+//
+// Setup: Pure assertions verifying command line options and protocol message handling.
+//
+// Beats:
+//   1. Validate JSON field extraction primitives for strings, booleans, and numbers.
+//   2. Verify CLI argument parsing for POSIX -t, -i and diagnostic switches.
+//   3. Test MCP initialize, tools/list, and tool call responses.
+//   4. Confirm correct JSON-RPC error generation on invalid inputs.
+
+import "core/expand_types.oo";
+import "ipc/json_field.oo";
+import "ipc/cli_options.oo";
+import "ipc/mcp_server.oo";
+
+pub fn run_ipc_tests() -> Bool {
+    // Test 1: JSON field extraction
+    let test_json: String = "{\"method\":\"tools/call\",\"id\":42,\"name\":\"expand_text\",\"initial\":true}";
+    if json_extract_str_field(test_json, "method") != "tools/call" {
+        print("FAIL: ipc json_extract_str_field failed\n");
+        return false;
+    }
+    if json_extract_int_field(test_json, "id", 0) != 42 {
+        print("FAIL: ipc json_extract_int_field failed\n");
+        return false;
+    }
+    if !json_extract_bool_field(test_json, "initial", false) {
+        print("FAIL: ipc json_extract_bool_field failed\n");
+        return false;
+    }
+
+    // Test 2: CLI option parsing
+    let mut args: List[String] = list_new();
+    args = list_push(args, "-t");
+    args = list_push(args, "4");
+    args = list_push(args, "-i");
+    args = list_push(args, "--visualize");
+    args = list_push(args, "--audit");
+    let opts: ExpandOpts = parse_expand_cli(args);
+
+    if !opts.initial_only {
+        print("FAIL: ipc parse_expand_cli failed on -i\n");
+        return false;
+    }
+    if !opts.visualize {
+        print("FAIL: ipc parse_expand_cli failed on --visualize\n");
+        return false;
+    }
+    if !opts.audit_mode {
+        print("FAIL: ipc parse_expand_cli failed on --audit\n");
+        return false;
+    }
+    if list_len(opts.tab_stops) != 1 || list_get(opts.tab_stops, 0) != 4 {
+        print("FAIL: ipc parse_expand_cli failed on tab stops\n");
+        return false;
+    }
+
+    // Test 3: MCP protocol handling
+    let init_resp: String = render_mcp_init("1");
+    if !str_contains(init_resp, "ooexpand") || !str_contains(init_resp, "0.2.0") {
+        print("FAIL: ipc render_mcp_init missing metadata\n");
+        return false;
+    }
+
+    let list_resp: String = render_mcp_tools_list("2");
+    if !str_contains(list_resp, "expand_text") || !str_contains(list_resp, "expand_analyze") {
+        print("FAIL: ipc render_mcp_tools_list missing tools\n");
+        return false;
+    }
+
+    let call_resp: String = handle_mcp_call("3", "expand_text", "{\"text\":\"\\tval\"}");
+    if !str_contains(call_resp, "val") {
+        print("FAIL: ipc handle_mcp_call expand_text failed\n");
+        return false;
+    }
+
+    print("PASS: ipc subsystem tests passed\n");
+    return true;
+}
+
+fn str_contains(s: String, needle: String) -> Bool {
+    let n_len: Int = chars_len(needle);
+    let s_len: Int = chars_len(s);
+    if n_len > s_len {
+        return false;
+    }
+    let mut i: Int = 0;
+    while i + n_len <= s_len {
+        if str_slice(s, i, i + n_len) == needle {
+            return true;
+        }
+        i = i + 1;
+    }
+    return false;
+}

@@ -1,0 +1,63 @@
+// # Synthetic Source Samples & Indentation Models
+//
+// Logline: Deterministic test buffers, multi-language code snippets, and whitespace anomalies.
+//
+// Setup: Pure string generators providing standardized fixtures for expansion and auditing tests.
+//
+// Beats:
+//   1. Generate canonical Go, Makefile, and Python code samples containing standard tabs.
+//   2. Produce mixed indentation fixtures with space-before-tab hazards.
+//   3. Provide initial vs mid-line tab test vectors.
+//   4. Calculate tab statistics across line collections.
+
+pub fn build_sample_code_tabs() -> List[String] {
+    let mut lines: List[String] = list_new();
+    lines = list_push(lines, "package main");
+    lines = list_push(lines, "");
+    lines = list_push(lines, "func calculateMetrics(items []int) int {");
+    lines = list_push(lines, "\ttotal := 0");
+    lines = list_push(lines, "\tfor _, val := range items {");
+    lines = list_push(lines, "\t\ttotal += val");
+    lines = list_push(lines, "\t}");
+    lines = list_push(lines, "\treturn total");
+    lines = list_push(lines, "}");
+    return lines;
+}
+
+pub fn build_sample_mixed_indent() -> List[String] {
+    let mut lines: List[String] = list_new();
+    lines = list_push(lines, "def process_data(records):");
+    lines = list_push(lines, "    # Clean 4-space indent");
+    lines = list_push(lines, "    results = []");
+    lines = list_push(lines, "  \tfor r in records:");
+    lines = list_push(lines, "\t    results.append(r * 2)");
+    lines = list_push(lines, "\treturn results\t");
+    return lines;
+}
+
+pub fn build_sample_initial_tabs() -> List[String] {
+    let mut lines: List[String] = list_new();
+    lines = list_push(lines, "\tcol1\tcol2\tcol3");
+    lines = list_push(lines, "\tvalA\tvalB\tvalC");
+    lines = list_push(lines, "\t100\t200\t300");
+    return lines;
+}
+
+pub fn count_total_tabs(lines: List[String]) -> Int {
+    let mut total: Int = 0;
+    let n: Int = list_len(lines);
+    let mut i: Int = 0;
+    while i < n {
+        let line: String = list_get(lines, i);
+        let l_len: Int = chars_len(line);
+        let mut j: Int = 0;
+        while j < l_len {
+            if byte_at(line, j) == 9 {
+                total = total + 1;
+            }
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+    return total;
+}

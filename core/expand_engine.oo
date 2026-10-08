@@ -1,0 +1,105 @@
+// # Tab Expansion Engine & Indentation Analyzer
+//
+// Logline: Converts tab characters into calibrated space sequences and audits whitespace hygiene.
+//
+// Setup: Pure string manipulation pipelines preserving column alignments without ambient dependencies.
+//
+// Beats:
+//   1. Expand tabs per line respecting column tracking and initial-only indentation rules.
+//   2. Support visual tab markers with arrow symbols for diagnostics.
+//   3. Detect mixed indentation anomalies, spaces preceding tabs, and trailing tabs.
+//   4. Collate indentation audit reports across input buffers.
+
+import "core/expand_types.oo";
+
+pub fn expand_line(line: String, opts: ExpandOpts) -> String {
+    let n: Int = chars_len(line);
+    let mut out: String = "";
+    let mut col: Int = 0;
+    let mut seen_non_ws: Bool = false;
+    let mut i: Int = 0;
+
+    while i < n {
+        let b: Int = byte_at(line, i);
+        if b == 9 {
+            if opts.initial_only && seen_non_ws {
+                out = out + "\t";
+                col = calculate_next_tab_stop(col, opts.tab_stops);
+            } else {
+                let next_stop: Int = calculate_next_tab_stop(col, opts.tab_stops);
+                let spaces_needed: Int = next_stop - col;
+                let actual_spaces: Int = if spaces_needed <= 0 { 1 } else { spaces_needed };
+                if opts.visualize {
+                    out = out + ">" + str_repeat_spaces(actual_spaces - 1);
+                } else {
+                    out = out + str_repeat_spaces(actual_spaces);
+                }
+                col = next_stop;
+            }
+        } else if b == 8 {
+            out = out + str_slice(line, i, i + 1);
+            if col > 0 {
+                col = col - 1;
+            }
+        } else {
+            if b != 32 {
+                seen_non_ws = true;
+            }
+            out = out + str_slice(line, i, i + 1);
+            col = col + 1;
+        }
+        i = i + 1;
+    }
+    return out;
+}
+
+pub fn analyze_line_indent(line: String, line_num: Int) -> List[IndentationIssue] {
+    let mut issues: List[IndentationIssue] = list_new();
+    let n: Int = chars_len(line);
+    let mut has_leading_space: Bool = false;
+    let mut has_leading_tab: Bool = false;
+    let mut space_before_tab: Bool = false;
+    let mut in_leading: Bool = true;
+    let mut i: Int = 0;
+
+    while i < n {
+        let b: Int = byte_at(line, i);
+        if in_leading {
+            if b == 32 {
+                has_leading_space = true;
+            } else if b == 9 {
+                has_leading_tab = true;
+                if has_leading_space {
+                    space_before_tab = true;
+                }
+            } else {
+                in_leading = false;
+            }
+        }
+        i = i + 1;
+    }
+
+    if space_before_tab {
+        issues = list_push(issues, IndentationIssue {
+            line_number: line_num,
+            severity: "ERROR",
+            message: "Space found before tab in leading indentation (inconsistent alignment hazard)."
+        });
+    } else if has_leading_space && has_leading_tab {
+        issues = list_push(issues, IndentationIssue {
+            line_number: line_num,
+            severity: "WARN",
+            message: "Mixed tabs and spaces detected in leading indentation."
+        });
+    }
+
+    if n > 0 && byte_at(line, n - 1) == 9 {
+        issues = list_push(issues, IndentationIssue {
+            line_number: line_num,
+            severity: "WARN",
+            message: "Trailing tab character detected at end of line."
+        });
+    }
+
+    return issues;
+}

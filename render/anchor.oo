@@ -1,0 +1,63 @@
+// # Render Subsystem Test Anchor
+//
+// Logline: Verification suite validating line rendering, ruler formatting, and JSON output pipelines.
+//
+// Setup: Pure assertions verifying output streams across plain, visual ruler, and structured JSON modes.
+//
+// Beats:
+//   1. Verify visual column ruler generation.
+//   2. Verify multi-line expansion rendering with terminal formatting.
+//   3. Test audit report table output under clean and defect states.
+//   4. Confirm JSON Lines streaming and JSON audit serialization.
+
+import "core/expand_types.oo";
+import "core/expand_synthetic.oo";
+import "render/render_expanded.oo";
+import "render/render_audit.oo";
+import "render/render_json.oo";
+
+pub fn run_render_tests() -> Bool {
+    let sample: List[String] = build_sample_code_tabs();
+    let opts: ExpandOpts = default_expand_opts();
+
+    // Test 1: Expanded lines rendering
+    let rendered: String = render_expanded_lines(sample, opts);
+    let r_len: Int = chars_len(rendered);
+    if r_len == 0 {
+        print("FAIL: render render_expanded_lines returned empty string\n");
+        return false;
+    }
+
+    // Test 2: Column ruler
+    let ruler: String = render_column_ruler(32);
+    let rul_len: Int = chars_len(ruler);
+    if rul_len != 33 {
+        print("FAIL: render render_column_ruler unexpected length\n");
+        return false;
+    }
+
+    // Test 3: Audit report formatting
+    let mut issues: List[IndentationIssue] = list_new();
+    issues = list_push(issues, IndentationIssue {
+        line_number: 1,
+        severity: "ERROR",
+        message: "Test indentation failure"
+    });
+    let audit_text: String = render_audit_report(issues, 1);
+    let a_len: Int = chars_len(audit_text);
+    if a_len == 0 {
+        print("FAIL: render render_audit_report returned empty text\n");
+        return false;
+    }
+
+    // Test 4: JSON Lines rendering
+    let json_lines: String = render_json_lines_stream(sample, opts);
+    let j_len: Int = chars_len(json_lines);
+    if j_len == 0 {
+        print("FAIL: render render_json_lines_stream returned empty text\n");
+        return false;
+    }
+
+    print("PASS: render subsystem tests passed\n");
+    return true;
+}

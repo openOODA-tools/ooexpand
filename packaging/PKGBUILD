@@ -1,9 +1,9 @@
 # Maintainer: openOODA-tools <ops@openooda.org>
 pkgname=ooexpand-bin
 _pkgname=ooexpand
-pkgver=0.1.0
+pkgver=0.2.0
 pkgrel=1
-pkgdesc="Converts tab characters to spaces with custom tab-stop positions and alignment."
+pkgdesc="Sovereign POSIX tab expander, whitespace visualizer, and indentation auditor"
 arch=('x86_64')
 url="https://github.com/openOODA-tools/ooexpand"
 license=('Apache-2.0')

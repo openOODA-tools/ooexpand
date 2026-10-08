@@ -1,0 +1,116 @@
+// # Tab Expansion Types & Geometry Formulations
+//
+// Logline: Canonical record structures, tab-stop calculations, and whitespace metric models.
+//
+// Setup: Pure geometric calculations determining tab stop positions under POSIX expansion rules.
+//
+// Beats:
+//   1. Declare ExpandOpts, IndentationIssue, and ExpandMetrics structures.
+//   2. Provide default options baseline with standard 8-column tab intervals.
+//   3. Compute next tab stop geometry for uniform and explicit stop lists.
+//   4. Parse comma-separated tab stop option strings.
+
+pub type ExpandOpts = struct {
+    tab_stops: List[Int],
+    initial_only: Bool,
+    visualize: Bool,
+    audit_mode: Bool,
+    json_mode: Bool,
+    demo_mode: Bool,
+    mcp_mode: Bool,
+    show_help: Bool,
+    show_version: Bool,
+    files: List[String]
+};
+
+pub type IndentationIssue = struct {
+    line_number: Int,
+    severity: String,
+    message: String
+};
+
+pub type ExpandMetrics = struct {
+    lines_processed: Int,
+    tabs_expanded: Int,
+    spaces_added: Int,
+    issues_found: Int
+};
+
+pub fn default_expand_opts() -> ExpandOpts {
+    let mut stops: List[Int] = list_new();
+    stops = list_push(stops, 8);
+    return ExpandOpts {
+        tab_stops: stops,
+        initial_only: false,
+        visualize: false,
+        audit_mode: false,
+        json_mode: false,
+        demo_mode: false,
+        mcp_mode: false,
+        show_help: false,
+        show_version: false,
+        files: list_new()
+    };
+}
+
+pub fn str_repeat_spaces(count: Int) -> String {
+    let mut out: String = "";
+    let mut i: Int = 0;
+    while i < count {
+        out = out + " ";
+        i = i + 1;
+    }
+    return out;
+}
+
+pub fn calculate_next_tab_stop(col: Int, tab_stops: List[Int]) -> Int {
+    let num_stops: Int = list_len(tab_stops);
+    if num_stops == 0 {
+        return ((col / 8) + 1) * 8;
+    }
+    if num_stops == 1 {
+        let interval: Int = list_get(tab_stops, 0);
+        let valid_interval: Int = if interval <= 0 { 8 } else { interval };
+        return ((col / valid_interval) + 1) * valid_interval;
+    }
+
+    let mut i: Int = 0;
+    while i < num_stops {
+        let stop_col: Int = list_get(tab_stops, i);
+        if stop_col > col {
+            return stop_col;
+        }
+        i = i + 1;
+    }
+    return col + 1;
+}
+
+pub fn parse_tab_stops(arg: String) -> List[Int] {
+    let mut stops: List[Int] = list_new();
+    let n: Int = chars_len(arg);
+    let mut cur: Int = 0;
+    let mut has_digit: Bool = false;
+    let mut i: Int = 0;
+
+    while i < n {
+        let b: Int = byte_at(arg, i);
+        if b >= 48 && b <= 57 {
+            cur = cur * 10 + (b - 48);
+            has_digit = true;
+        } else if b == 44 || b == 32 || b == 9 {
+            if has_digit && cur > 0 {
+                stops = list_push(stops, cur);
+                cur = 0;
+                has_digit = false;
+            }
+        }
+        i = i + 1;
+    }
+    if has_digit && cur > 0 {
+        stops = list_push(stops, cur);
+    }
+    if list_len(stops) == 0 {
+        stops = list_push(stops, 8);
+    }
+    return stops;
+}

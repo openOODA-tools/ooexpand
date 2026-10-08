@@ -1,0 +1,50 @@
+// # Indentation & Whitespace Audit Report Renderer
+//
+// Logline: Formats whitespace hygiene findings and indentation defect summaries into terminal reports.
+//
+// Setup: Pure string reporting formatting tabular issue lists and severity totals.
+//
+// Beats:
+//   1. Render report header with inspected line counts.
+//   2. Output clean pass banner when no defects exist.
+//   3. Format issue listings with line numbers and severity classifications.
+//   4. Deliver concluding summary tallies.
+
+import "core/expand_types.oo";
+
+pub fn render_audit_report(issues: List[IndentationIssue], line_count: Int) -> String {
+    let mut out: String = "";
+    out = out + "================================================================================\n";
+    out = out + "               OOEXPAND WHITESPACE & INDENTATION AUDIT REPORT                   \n";
+    out = out + "================================================================================\n";
+    out = out + "Inspected " + line_count.to_string() + " source lines.\n\n";
+
+    let n: Int = list_len(issues);
+    if n == 0 {
+        out = out + "[OK] Indentation hygiene is clean. Zero mixed whitespace defects detected.\n";
+        return out;
+    }
+
+    out = out + "FOUND " + n.to_string() + " INDENTATION FINDINGS:\n";
+    out = out + "--------------------------------------------------------------------------------\n";
+    let mut i: Int = 0;
+    let mut err_count: Int = 0;
+    let mut warn_count: Int = 0;
+
+    while i < n {
+        let issue: IndentationIssue = list_get(issues, i);
+        let tag: String = if issue.severity == "ERROR" {
+            err_count = err_count + 1;
+            "[ERROR]"
+        } else {
+            warn_count = warn_count + 1;
+            "[WARN] "
+        };
+        out = out + tag + " Line " + issue.line_number.to_string() + ": " + issue.message + "\n";
+        i = i + 1;
+    }
+
+    out = out + "--------------------------------------------------------------------------------\n";
+    out = out + "Summary: " + err_count.to_string() + " Errors, " + warn_count.to_string() + " Warnings.\n";
+    return out;
+}

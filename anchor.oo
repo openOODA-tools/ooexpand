@@ -1,13 +1,38 @@
-// # ooexpand Root Anchor
+// # ooexpand Root Subsystem Verification Anchor
 //
-// Logline: Top-level anchor re-exporting options, core logic, render, and ipc subsystems.
+// Logline: Comprehensive test coordinator executing core, render, and ipc test suites.
 //
-// Setup: Pure shim re-exporting all ooexpand subsystem anchors.
+// Setup: Root orchestrator validating tab expansion capabilities and formatting rules.
 //
 // Beats:
-//   1. Re-export options parsing subsystem.
-//   2. Re-export core ooexpand execution engine.
-//   3. Re-export render formatting subsystem.
-//   4. Re-export Model Context Protocol (MCP) IPC subsystem.
+//   1. Execute core subsystem assertions (tab stop geometry, expansion engine, analysis).
+//   2. Execute render subsystem assertions (visual ruler, text stream, JSON formats).
+//   3. Execute ipc subsystem assertions (CLI parsing, JSON parsing, MCP protocol).
+//   4. Report overall verification status.
 
-import "main.oo";
+import "core/anchor.oo";
+import "render/anchor.oo";
+import "ipc/anchor.oo";
+
+pub fn run_all_tests() -> Bool {
+    print("--- Running ooexpand Core Tests ---\n");
+    if !run_core_tests() {
+        print("FAIL: core subsystem tests failed\n");
+        return false;
+    }
+
+    print("--- Running ooexpand Render Tests ---\n");
+    if !run_render_tests() {
+        print("FAIL: render subsystem tests failed\n");
+        return false;
+    }
+
+    print("--- Running ooexpand IPC Tests ---\n");
+    if !run_ipc_tests() {
+        print("FAIL: ipc subsystem tests failed\n");
+        return false;
+    }
+
+    print("ALL OOEXPAND SUBSYSTEM TESTS PASSED\n");
+    return true;
+}

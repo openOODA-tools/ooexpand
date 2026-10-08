@@ -1,0 +1,94 @@
+// # POSIX CLI Option Parser & Dispatcher
+//
+// Logline: Robust argument parser mapping POSIX expand flags, tab stop lists, and audit switches.
+//
+// Setup: Pure argument scanning and option structure assembly with zero ambient authority.
+//
+// Beats:
+//   1. Parse standard -t/--tabs stop lists and -i/--initial flags.
+//   2. Parse diagnostic --visualize and --audit switches.
+//   3. Handle JSON formatting and synthetic showcase switches.
+//   4. Deliver populated ExpandOpts structure for processing.
+
+import "core/expand_types.oo";
+
+pub fn render_help() -> String {
+    return "ooexpand 0.2.0 (openOODA sovereign search & inspection)\n"
+        + "usage: ooexpand [options] [FILE]...\n\n"
+        + "Convert tab characters to spaces with custom tab-stop positions and alignment.\n\n"
+        + "POSIX Options:\n"
+        + "  -i, --initial         do not convert tabs after non blanks\n"
+        + "  -t, --tabs=N          have tabs N characters apart, not 8\n"
+        + "  -t, --tabs=LIST       use comma-separated list of explicit tab positions\n\n"
+        + "Sovereign Diagnostic & Inspection Extensions:\n"
+        + "      --visualize       render column ruler and highlight tab locations\n"
+        + "      --audit           audit indentation hygiene for mixed whitespace and errors\n"
+        + "  -j, --json            output formatted as structured JSON Lines stream\n"
+        + "  -D, --demo            synthetic multi-scenario code showcase\n"
+        + "      --mcp             run as Model Context Protocol (MCP) stdio server\n"
+        + "      --test            run internal substrate anchor verification tests\n"
+        + "  -h, --help            display this help and exit\n"
+        + "  -v, --version         output version information and exit\n";
+}
+
+pub fn render_version() -> String {
+    return "ooexpand 0.2.0 (openOODA sovereign search & inspection)\n";
+}
+
+pub fn parse_expand_cli(args: List[String]) -> ExpandOpts {
+    let mut opts: ExpandOpts = default_expand_opts();
+    let num_args: Int = list_len(args);
+    let mut i: Int = 0;
+    let mut parsing_flags: Bool = true;
+
+    while i < num_args {
+        let arg: String = list_get(args, i);
+
+        if parsing_flags && (arg == "-h" || arg == "--help") {
+            opts.show_help = true;
+            return opts;
+        } else if parsing_flags && (arg == "-v" || arg == "--version") {
+            opts.show_version = true;
+            return opts;
+        } else if parsing_flags && (arg == "-i" || arg == "--initial") {
+            opts.initial_only = true;
+        } else if parsing_flags && (arg == "-j" || arg == "--json") {
+            opts.json_mode = true;
+        } else if parsing_flags && (arg == "-D" || arg == "--demo") {
+            opts.demo_mode = true;
+        } else if parsing_flags && arg == "--mcp" {
+            opts.mcp_mode = true;
+        } else if parsing_flags && arg == "--visualize" {
+            opts.visualize = true;
+        } else if parsing_flags && arg == "--audit" {
+            opts.audit_mode = true;
+        } else if parsing_flags && (arg == "-t" || arg == "--tabs") && i + 1 < num_args {
+            i = i + 1;
+            opts.tab_stops = parse_tab_stops(list_get(args, i));
+        } else if parsing_flags && str_starts_with(arg, "--tabs=") {
+            let tab_arg: String = str_slice(arg, 7, chars_len(arg));
+            opts.tab_stops = parse_tab_stops(tab_arg);
+        } else if parsing_flags && str_starts_with(arg, "-t") && chars_len(arg) > 2 {
+            let tab_arg: String = str_slice(arg, 2, chars_len(arg));
+            opts.tab_stops = parse_tab_stops(tab_arg);
+        } else if parsing_flags && arg == "--test" {
+            opts.files = list_push(opts.files, "--test");
+        } else if parsing_flags && arg == "--" {
+            parsing_flags = false;
+        } else {
+            parsing_flags = false;
+            opts.files = list_push(opts.files, arg);
+        }
+        i = i + 1;
+    }
+    return opts;
+}
+
+fn str_starts_with(s: String, prefix: String) -> Bool {
+    let p_len: Int = chars_len(prefix);
+    let s_len: Int = chars_len(s);
+    if p_len > s_len {
+        return false;
+    }
+    return str_slice(s, 0, p_len) == prefix;
+}

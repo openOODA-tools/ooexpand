@@ -1,0 +1,48 @@
+// # Expanded Text & Visual Ruler Renderer
+//
+// Logline: Formats expanded line sequences with optional column rulers and tab marker visualizations.
+//
+// Setup: Pure string synthesis formatting aligned character streams for terminal output.
+//
+// Beats:
+//   1. Render expanded lines to newline-delimited stream.
+//   2. Generate visual column ruler bar for tab stop calibration.
+//   3. Render annotated lines highlighting replaced tab positions.
+//   4. Deliver output streams ready for standard stdout flushing.
+
+import "core/expand_types.oo";
+import "core/expand_engine.oo";
+
+pub fn render_column_ruler(width: Int) -> String {
+    let mut out: String = "";
+    let mut col: Int = 1;
+    while col <= width {
+        if col % 8 == 0 {
+            out = out + "|";
+        } else if col % 4 == 0 {
+            out = out + "+";
+        } else {
+            out = out + "-";
+        }
+        col = col + 1;
+    }
+    out = out + "\n";
+    return out;
+}
+
+pub fn render_expanded_lines(lines: List[String], opts: ExpandOpts) -> String {
+    let mut out: String = "";
+    if opts.visualize {
+        out = out + render_column_ruler(64);
+    }
+
+    let n: Int = list_len(lines);
+    let mut i: Int = 0;
+    while i < n {
+        let line: String = list_get(lines, i);
+        let exp: String = expand_line(line, opts);
+        out = out + exp + "\n";
+        i = i + 1;
+    }
+    return out;
+}

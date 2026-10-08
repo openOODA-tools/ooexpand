@@ -1,4 +1,4 @@
-# ooexpand: Sovereign TAB EXPANDER
+# ooexpand: Sovereign POSIX Tab Expander & Indentation Auditor
 
 <div align="center">
 
@@ -9,14 +9,15 @@
 ================================================================================
 ```
 
-**Sovereign TAB EXPANDER**  
-*Converts tab characters to spaces with custom tab-stop positions and alignment.*  
+**Sovereign POSIX Tab Expander, Whitespace Visualizer, and Indentation Auditor**  
+*Converts tab characters to spaces with custom tab-stop positions, visual alignment, and indentation hygiene analysis.*  
 *Two Faces, One Engine:* Modern terminal ergonomics for humans • Zero-leakage MCP for AI agents  
-Written in 100% pure [openOODA](https://github.com/openOODA).
+Written in 100% pure native [openOODA](https://github.com/openOODA) (`.oo`).
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![openOODA](https://img.shields.io/badge/openOODA-1.0-emerald.svg)](https://openooda.org)
-[![Architecture: x86_64 | aarch64](https://img.shields.io/badge/Arch-x86__64%20%7C%20aarch64-lightgrey.svg)]()
+[![Version: 0.2.0](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/openOODA-tools/ooexpand/releases/tag/v0.2.0)
+[![Architecture: x86_64](https://img.shields.io/badge/Arch-x86__64-lightgrey.svg)]()
 
 </div>
 
@@ -24,16 +25,14 @@ Written in 100% pure [openOODA](https://github.com/openOODA).
 
 ## 1. Quick Install
 
-### Automated Installer (Linux x86_64 & aarch64)
+### Automated Installer (Linux x86_64)
 ```bash
 curl -fsSL https://openooda-tools.github.io/ooexpand/install.sh | bash
 ```
 
 ### Native Package Managers
 ```bash
-# Arch Linux (AUR / PKGBUILD)
-yay -S ooexpand-bin
-# Or manual PKGBUILD:
+# Arch Linux (PKGBUILD)
 cd packaging/arch && makepkg -si
 
 # Debian / Ubuntu (.deb)
@@ -51,50 +50,54 @@ ooexpand-uninstall
 
 ---
 
-## 2. CLI Usage
+## 2. CLI Usage & Capabilities
 
 ```
-usage: ooexpand [options] [ARGUMENTS]...
+usage: ooexpand [options] [FILE]...
 
-Converts tab characters to spaces with custom tab-stop positions and alignment.
+Convert tab characters to spaces with custom tab-stop positions and alignment.
 
-Options:
-  -h, --help           display this help and exit
-  -v, --version        output version information and exit
-      --json           output formatted as JSON Lines
-      --color <WHEN>   colorize output: auto, always, never [default: auto]
-      --theme <NAME>   override active oote palette
-      --mcp            run as Model Context Protocol stdio server
+POSIX Options:
+  -i, --initial         do not convert tabs after non blanks
+  -t, --tabs=N          have tabs N characters apart, not 8
+  -t, --tabs=LIST       use comma-separated list of explicit tab positions
+
+Sovereign Diagnostic & Inspection Extensions:
+      --visualize       render column ruler and highlight tab locations
+      --audit           audit indentation hygiene for mixed whitespace and errors
+  -j, --json            output formatted as structured JSON Lines stream
+  -D, --demo            synthetic multi-scenario code showcase
+      --mcp             run as Model Context Protocol (MCP) stdio server
+      --test            run internal substrate anchor verification tests
+  -h, --help            display this help and exit
+  -v, --version         output version information and exit
 ```
 
 ---
 
-## 3. Theming Integration (`oote`)
+## 3. Whitespace & Indentation Auditing
 
-`ooexpand` synchronizes visual styles and status colors with [oote](https://github.com/openOODA-tools/oote):
-* **Configuration:** Reads active palette from `~/.openooda/theme.oot`.
-* **Environment Overrides:** Respects `$OODA_THEME` and `$NO_COLOR`.
+`ooexpand` features built-in static analysis heuristics to detect indentation anomalies and mixed whitespace:
+* **Space Before Tab:** Detects spaces preceding tab characters in leading indentation (inconsistent alignment defect).
+* **Mixed Indentation:** Identifies lines with discordant mixtures of tabs and space sequences.
+* **Trailing Tabs:** Identifies redundant trailing tab characters at end-of-line.
 
 ---
 
-## 4. Model Context Protocol (MCP)
+## 4. Model Context Protocol (MCP) Stdio Server
 
 When invoked with `--mcp`, `ooexpand` runs a JSON-RPC 2.0 stdio server providing structured tools for AI coding agents:
 
-```bash
-ooexpand --mcp
-```
+| Tool | Description |
+| :--- | :--- |
+| `expand_text` | Convert tabs to spaces with custom tab stops and initial-only indentation rules |
+| `expand_file` | Read code samples or file buffers and expand tab alignment |
+| `expand_analyze` | Audit indentation hygiene and report defect coordinates |
+| `expand_visualize` | Render text with visual column ruler and tab marker indicators |
+| `expand_demo` | Multi-scenario sovereign tab expansion showcase |
 
 ---
 
-## 5. Security & Zero Ambient Authority
-
-* **Pure Capability Bounded:** Operates strictly with explicit tokens (&FsReadCap, &TermCap, &McpCap). Physical absence of ambient disk/net leakage.
-* **Negative-Trust Architecture:** Strict input validation and operational limits.
-* **Hermetic Binary:** Standalone zero-dependency executable.
-
----
-
-## 6. License
+## 5. License
 
 Apache License, Version 2.0. See [LICENSE](LICENSE) for details.

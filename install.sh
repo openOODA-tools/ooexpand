@@ -4,7 +4,7 @@
 # "Converts tab characters to spaces with custom tab-stop positions and alignment."
 #
 # Usage:
-#   curl -fsSL https://openooda-tooexpand.github.io/ooexpand/install.sh | bash
+#   curl -fsSL https://openooda-tools.github.io/ooexpand/install.sh | bash
 #
 # Options:
 #   --prefix <dir>       Installation directory (default: /usr/local/bin or ~/.local/bin)
@@ -18,10 +18,10 @@
 
 set -eu
 
-REPO="openOODA-tooexpand/ooexpand"
+REPO="openOODA-tools/ooexpand"
 GITHUB_URL="https://github.com/${REPO}"
-VERSION_PIN="v0.1.0"
-RAW_VERSION="0.1.0"
+VERSION_PIN="v0.2.0"
+RAW_VERSION="0.2.0"
 
 if [ -t 1 ] && [ "${NO_COLOR:-}" = "" ] && [ "${TERM:-dumb}" != "dumb" ]; then
     CYAN="\033[38;5;51m"

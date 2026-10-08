@@ -4,7 +4,7 @@
 # "Removes ooexpand binary, package installations, and cache."
 #
 # Usage:
-#   curl -fsSL https://openooda-tooexpand.github.io/ooexpand/uninstall.sh | bash
+#   curl -fsSL https://openooda-tools.github.io/ooexpand/uninstall.sh | bash
 #   or: ./uninstall.sh [options]
 #
 # Options:

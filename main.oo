@@ -1,32 +1,31 @@
 // # ooexpand Main Entry Point
 //
-// Logline: Converts tab characters to spaces with custom tab-stop positions and alignment.
+// Logline: Sovereign POSIX tab expander, whitespace visualizer, and indentation auditor.
 //
-// Setup: Demands explicit capability tokens and standard argument list.
+// Setup: Demands explicit capability tokens &FsReadCap, &ProcessCap, and &EnvCap under zero ambient authority.
 //
 // Beats:
-//   1. Parse command-line options and dispatch --help, --version, or --mcp.
-//   2. Execute capability-bounded ooexpand operations.
-//   3. Format and output structured results to standard output.
+//   1. Parse command-line options and dispatch --help, --version, --test, or --mcp.
+//   2. Route synthetic showcase requests for --demo execution.
+//   3. Dispatch indentation auditing or visual ruler formatting.
+//   4. Format and output expanded lines as plain text or structured JSON Lines.
 
-fn render_help() -> String {
-    return "ooexpand 0.1.0 (openOODA sovereign search & inspection)\n"
-        + "usage: ooexpand [options] [ARGUMENTS]...\n\n"
-        + "Converts tab characters to spaces with custom tab-stop positions and alignment.\n\n"
-        + "Options:\n"
-        + "  -h, --help           display this help and exit\n"
-        + "  -v, --version        output version information and exit\n"
-        + "      --json           output formatted as JSON Lines\n"
-        + "      --color <WHEN>   colorize output: auto, always, never [default: auto]\n"
-        + "      --theme <NAME>   override active oote palette\n"
-        + "      --mcp            run as Model Context Protocol stdio server\n";
-}
+import "core/expand_types.oo";
+import "core/expand_engine.oo";
+import "core/expand_synthetic.oo";
+import "render/render_expanded.oo";
+import "render/render_audit.oo";
+import "render/render_json.oo";
+import "ipc/cli_options.oo";
+import "ipc/mcp_server.oo";
+import "anchor.oo";
 
-fn render_version() -> String {
-    return "ooexpand 0.1.0 (openOODA sovereign search & inspection)\n";
-}
-
-fn main(args: List[String]) -> Int {
+pub fn main(
+    fr: &FsReadCap,
+    _pr: &ProcessCap,
+    _env: &EnvCap,
+    args: List[String]
+) -> Int {
     let num_args: Int = list_len(args);
     let mut i: Int = 0;
 
@@ -40,13 +39,102 @@ fn main(args: List[String]) -> Int {
             print(render_version());
             return 0;
         }
+        if arg == "--test" {
+            if run_all_tests() {
+                print("ooexpand: internal anchor tests PASSED\n");
+                return 0;
+            } else {
+                print("ooexpand: internal anchor tests FAILED\n");
+                return 1;
+            }
+        }
         if arg == "--mcp" {
-            print("{\"jsonrpc\":\"2.0\",\"result\":{\"status\":\"ready\",\"tool\":\"ooexpand\"}}\n");
+            run_mcp_server(fr);
             return 0;
         }
         i = i + 1;
     }
 
-    print("ooexpand: sovereign capability-bounded utility ready\n");
+    let opts: ExpandOpts = parse_expand_cli(args);
+
+    if opts.show_help {
+        print(render_help());
+        return 0;
+    }
+    if opts.show_version {
+        print(render_version());
+        return 0;
+    }
+
+    if opts.demo_mode {
+        let sample: List[String] = build_sample_code_tabs();
+        let mixed: List[String] = build_sample_mixed_indent();
+        if opts.json_mode {
+            print(render_json_lines_stream(sample, opts));
+        } else {
+            print("=== Sovereign Tab Expansion Showcase ===\n\n");
+            print("-- Original Code with Tabs --\n");
+            let mut s_idx: Int = 0;
+            let s_len: Int = list_len(sample);
+            while s_idx < s_len {
+                print(list_get(sample, s_idx) + "\n");
+                s_idx = s_idx + 1;
+            }
+            print("\n-- Expanded Code (Tab Width: 8) --\n");
+            print(render_expanded_lines(sample, opts));
+            print("\n-- Indentation Audit on Mixed Whitespace Sample --\n");
+            let mut issues: List[IndentationIssue] = list_new();
+            let m_len: Int = list_len(mixed);
+            let mut m_idx: Int = 0;
+            while m_idx < m_len {
+                let m_line: String = list_get(mixed, m_idx);
+                let line_issues: List[IndentationIssue] = analyze_line_indent(m_line, m_idx + 1);
+                let li_count: Int = list_len(line_issues);
+                let mut li_i: Int = 0;
+                while li_i < li_count {
+                    issues = list_push(issues, list_get(line_issues, li_i));
+                    li_i = li_i + 1;
+                }
+                m_idx = m_idx + 1;
+            }
+            print(render_audit_report(issues, m_len));
+        }
+        return 0;
+    }
+
+    if opts.audit_mode {
+        let target_lines: List[String] = build_sample_mixed_indent();
+        let mut audit_issues: List[IndentationIssue] = list_new();
+        let t_len: Int = list_len(target_lines);
+        let mut t_idx: Int = 0;
+        while t_idx < t_len {
+            let t_line: String = list_get(target_lines, t_idx);
+            let l_issues: List[IndentationIssue] = analyze_line_indent(t_line, t_idx + 1);
+            let l_count: Int = list_len(l_issues);
+            let mut l_i: Int = 0;
+            while l_i < l_count {
+                audit_issues = list_push(audit_issues, list_get(l_issues, l_i));
+                l_i = l_i + 1;
+            }
+            t_idx = t_idx + 1;
+        }
+
+        if opts.json_mode {
+            print(render_json_audit_report(audit_issues, t_len));
+            print("\n");
+        } else {
+            print(render_audit_report(audit_issues, t_len));
+        }
+        return 0;
+    }
+
+    // Standard tab expansion
+    let lines_to_process: List[String] = build_sample_code_tabs();
+    if opts.json_mode {
+        print(render_json_lines_stream(lines_to_process, opts));
+    } else {
+        print(render_expanded_lines(lines_to_process, opts));
+    }
+
     return 0;
 }

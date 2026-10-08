@@ -1,13 +1,9 @@
-Source: ooexpand
+Package: ooexpand
+Version: 0.2.0-1
 Section: utils
 Priority: optional
-Maintainer: openOODA-tools <ops@openooda.org>
-Standards-Version: 4.6.2
-Build-Depends: debhelper-compat (= 13)
-
-Package: ooexpand
 Architecture: amd64
-Depends: libc6
+Maintainer: openOODA-tools <ops@openooda.org>
 Description: Sovereign POSIX tab expander, whitespace visualizer, and indentation auditor in pure openOODA.
  Capability-bounded openOODA utility with zero ambient authority,
  custom tab-stop lists, initial indentation conversion, tab visualization,

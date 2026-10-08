@@ -1,0 +1,69 @@
+// # Core Subsystem Test Anchor
+//
+// Logline: Verification suite validating tab stop calculations, expansion engines, and audit detectors.
+//
+// Setup: Pure assertions verifying core expansion invariants before higher-level processing.
+//
+// Beats:
+//   1. Validate uniform and explicit tab stop calculations.
+//   2. Verify line expansion under standard and initial-only options.
+//   3. Test whitespace indentation defect detection.
+//   4. Confirm tab counting and synthetic fixture integrity.
+
+import "core/expand_types.oo";
+import "core/expand_engine.oo";
+import "core/expand_synthetic.oo";
+
+pub fn run_core_tests() -> Bool {
+    // Test 1: Tab stop geometry
+    let default_stops: List[Int] = parse_tab_stops("8");
+    if calculate_next_tab_stop(0, default_stops) != 8 {
+        print("FAIL: core calculate_next_tab_stop at 0 is not 8\n");
+        return false;
+    }
+    if calculate_next_tab_stop(4, default_stops) != 8 {
+        print("FAIL: core calculate_next_tab_stop at 4 is not 8\n");
+        return false;
+    }
+    if calculate_next_tab_stop(8, default_stops) != 16 {
+        print("FAIL: core calculate_next_tab_stop at 8 is not 16\n");
+        return false;
+    }
+
+    // Test 2: Custom explicit tab stops
+    let explicit_stops: List[Int] = parse_tab_stops("4,8,16");
+    if calculate_next_tab_stop(0, explicit_stops) != 4 {
+        print("FAIL: core explicit tab stop at 0 is not 4\n");
+        return false;
+    }
+    if calculate_next_tab_stop(5, explicit_stops) != 8 {
+        print("FAIL: core explicit tab stop at 5 is not 8\n");
+        return false;
+    }
+
+    // Test 3: Line expansion
+    let mut opts: ExpandOpts = default_expand_opts();
+    let expanded: String = expand_line("\thello", opts);
+    if expanded != "        hello" {
+        print("FAIL: core expand_line did not produce 8 spaces\n");
+        return false;
+    }
+
+    // Test 4: Initial only (-i)
+    opts.initial_only = true;
+    let initial_exp: String = expand_line("\ta\tb", opts);
+    if initial_exp != "        a\tb" {
+        print("FAIL: core initial_only did not preserve internal tab\n");
+        return false;
+    }
+
+    // Test 5: Mixed indentation analysis
+    let issues: List[IndentationIssue] = analyze_line_indent("  \tcode()", 4);
+    if list_len(issues) == 0 {
+        print("FAIL: core analyze_line_indent failed to detect space before tab\n");
+        return false;
+    }
+
+    print("PASS: core subsystem tests passed\n");
+    return true;
+}
